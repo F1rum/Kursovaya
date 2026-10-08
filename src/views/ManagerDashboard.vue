@@ -1,0 +1,320 @@
+<template>
+  <div class="manager-dashboard-container">
+    <div class="header">
+      <h2>Панель управления менеджера</h2>
+       <button @click="handleLogout" class="logout-btn">Выход</button>
+    </div>
+    <button @click="openAddFarmModal" class="add-farm-btn">Добавить новую ферму</button>
+
+    <div v-if="farms.length === 0 && !loading && !error">
+      <p>На данный момент нет ни одной фермы. Добавьте первую!</p>
+    </div>
+    <div v-if="loading">
+      <p>Загрузка данных о фермах...</p>
+    </div>
+    <div v-if="error" class="error-message">
+      <p>{{ error }}</p>
+    </div>
+
+    <div v-for="farm in farms" :key="farm.id" class="farm-card">
+      <h3>{{ farm.name }}</h3>
+      <div class="farm-info">
+        <h4>Информация о птицах:</h4>
+        <p v-if="farm.birds.length === 0">На этой ферме пока нет птиц.</p>
+        <table v-else>
+          <thead>
+            <tr>
+              <th>Вид птицы</th>
+              <th>Количество</th>
+              <th>Норма корма (кг/птицу)</th>
+              <th>Стоимость 1 кг корма (руб.)</th>
+              <th>Общий расход корма (кг)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(bird, index) in farm.birds" :key="index">
+              <td>{{ bird.type }}</td>
+              <td>{{ bird.count }}</td>
+              <td>{{ bird.feed_norm_kg }}</td>
+              <td>{{ bird.price_per_kg_feed }}</td>
+              <td>{{ calculateTotalFeed(bird) }}</td>
+            </tr>
+            <tr class="farm-total">
+              <td colspan="4"><strong>Всего на ферме</strong></td>
+              <td><strong>{{ calculateFarmTotalFeed(farm) }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Модальное окно для добавления фермы -->
+    <div v-if="isAddFarmModalVisible" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Добавление новой фермы</h3>
+        <input type="text" v-model="newFarmName" placeholder="Название новой фермы">
+        <div class="modal-buttons">
+          <button @click="addFarm" :disabled="!newFarmName.trim()">Сохранить</button>
+          <button @click="closeAddFarmModal">Отмена</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { logout } from '@/router';
+import api from '../services/api';
+
+export default {
+  name: 'ManagerDashboard',
+  data() {
+    return {
+      farms: [],
+      loading: false,
+      error: '',
+      isAddFarmModalVisible: false,
+      newFarmName: ''
+    };
+  },
+  async created() {
+    await this.fetchFarms();
+  },
+  methods: {
+    async fetchFarms() {
+      this.loading = true;
+      this.error = '';
+      try {
+        this.farms = await api.getFarms();
+      } catch (e) {
+        this.error = 'Не удалось загрузить данные о фермах. Проверьте работу JSON Server.';
+        console.error("Error fetching farms:", e);
+      } finally {
+        this.loading = false;
+      }
+    },
+    calculateTotalFeed(bird) {
+      if (bird.count === undefined || bird.feed_norm_kg === undefined) return 'N/A';
+      // Добавляем расчет стоимости корма
+      const totalFeed = bird.count * bird.feed_norm_kg;
+      return totalFeed.toFixed(2); // Округляем до 2 знаков после запятой
+    },
+    calculateFarmTotalFeed(farm) {
+      if (!farm.birds || farm.birds.length === 0) return '0.00';
+      let total = 0;
+      farm.birds.forEach(bird => {
+        total += parseFloat(this.calculateTotalFeed(bird));
+      });
+      return total.toFixed(2);
+    },
+    openAddFarmModal() {
+      this.newFarmName = ''; // Очищаем поле при каждом открытии
+      this.isAddFarmModalVisible = true;
+    },
+    closeAddFarmModal() {
+      this.isAddFarmModalVisible = false;
+    },
+    handleLogout() {
+      logout();
+    },
+    async addFarm() {
+      if (!this.newFarmName.trim()) {
+        alert("Пожалуйста, введите название фермы.");
+        return;
+      }
+      const newFarm = {
+        name: this.newFarmName.trim(),
+        birds: [] 
+      };
+      this.farms.push({ ...newFarm, id: Date.now() });
+      alert(`Ферма "${newFarm.name}" добавлена (имитация).`);
+      this.closeAddFarmModal();
+    }
+  }
+};
+</script>
+
+<style scoped>
+.manager-dashboard-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 25px;
+  max-width: 1200px;
+  margin: 30px auto;
+  background-color: #f4f7f6;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+h2 {
+  text-align: center;
+  color: #2c3e50;
+  margin: 0; 
+  font-size: 2.2em;
+}
+.logout-btn {
+  padding: 8px 15px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.logout-btn:hover {
+  background-color: #d32f2f;
+  transform: translateY(-1px);
+}
+
+.add-farm-btn, .add-bird-btn {
+  display: inline-block; 
+  margin: 10px auto 30px auto;
+  padding: 12px 25px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.add-farm-btn:hover, .add-bird-btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+.farm-card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+  padding: 25px;
+  transition: box-shadow 0.3s ease;
+}
+.farm-card:hover {
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+}
+.farm-card h3 {
+  color: #2c3e50;
+  font-size: 1.8em;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+.farm-info h4 {
+  color: #34495e;
+  font-size: 1.3em;
+  margin-bottom: 15px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+th, td {
+  border: 1px solid #e0e0e0;
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 1em;
+}
+th {
+  background-color: #ecf0f1;
+  color: #2c3e50;
+  font-weight: 600;
+}
+td {
+  color: #34495e;
+}
+.farm-total td {
+  font-weight: bold;
+  background-color: #f9f9f9;
+  color: #2c3e50;
+}
+
+.loading-message, .error-message {
+  text-align: center;
+  font-size: 1.1em;
+  color: #7f8c8d;
+  margin-top: 20px;
+}
+.error-message {
+  color: #e74c3c;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 450px; 
+  text-align: center;
+}
+.modal-content h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.8em;
+  margin-bottom: 20px;
+}
+.modal-content input[type="text"],
+.modal-content input[type="number"] {
+  width: calc(100% - 20px);
+  padding: 12px;
+  margin-bottom: 15px; 
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1.1em;
+  box-sizing: border-box; 
+}
+.modal-buttons {
+  display: flex;
+  justify-content: space-around;
+  gap: 15px;
+  margin-top: 25px;
+}
+.modal-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+}
+.modal-buttons button:first-child {
+  background-color: #3498db;
+  color: white;
+}
+.modal-buttons button:first-child:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+.modal-buttons button:last-child { 
+  background-color: #e74c3c;
+  color: white;
+}
+.modal-buttons button:last-child:hover {
+  background-color: #c0392b;
+}
+.modal-buttons button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+</style>

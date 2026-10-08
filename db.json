@@ -1,0 +1,29 @@
+{
+  "users": [
+    { "id": 1, "username": "manager", "password": "password", "role": "manager" },
+    { "id": 2, "username": "customer", "password": "password", "role": "customer" }
+  ],
+  "farms": [
+    {
+      "id": 1,
+      "name": "Ферма №1",
+      "birds": [
+        { "type": "Курица", "count": 1500, "feed_norm_kg": 0.12, "price_per_kg_feed": 50 },
+        { "type": "Утка", "count": 800, "feed_norm_kg": 0.15, "price_per_kg_feed": 60 }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Ферма №2",
+      "birds": [
+        { "type": "Курица", "count": 2000, "feed_norm_kg": 0.12, "price_per_kg_feed": 50 },
+        { "type": "Гусь", "count": 500, "feed_norm_kg": 0.20, "price_per_kg_feed": 70 }
+      ]
+    }
+  ],
+  "pricing": {
+    "chicken": 150,
+    "duck": 250,
+    "goose": 400
+  }
+}
