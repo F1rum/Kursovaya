@@ -4,9 +4,8 @@
       <h2>Калькулятор стоимости птиц</h2>
       <button @click="handleLogout" class="logout-btn">Выход</button>
     </div>
-    <!-- ... остальной код компонента ... -->
      <div class="calculator">
-      <label for="quantity">Количество птиц:</label>
+      <label for="quantity">Введите нужное вам количество птиц:</label>
       <input type="number" id="quantity" v-model.number="birdCount" min="1">
       <button @click="calculatePrice" :disabled="!birdCount || birdCount < 1">Рассчитать</button>
     </div>
@@ -66,7 +65,7 @@ export default {
       this.totalPrice = this.birdCount * pricePerBird;
     },
     handleLogout() {
-      logout(); // Вызываем функцию выхода
+      logout();
     }
   }
 };

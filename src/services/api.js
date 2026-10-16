@@ -3,18 +3,32 @@ import axios from 'axios';
 const API_URL = 'http://localhost:3000';
 
 export default {
-  // --- Пользователи ---
-  async getUsers() {
+
+  async login(credentials) {
     try {
-      const response = await axios.get(`${API_URL}/users`);
+      
+      const response = await axios.post(`${API_URL}/users`, credentials);
       return response.data;
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Login error:", error);
+      if (error.response && error.response.status === 404) {
+        throw new Error("Пользователь не найден или неверный пароль.");
+      } else {
+        throw new Error("Ошибка при попытке входа. Пожалуйста, попробуйте позже.");
+      }
+    }
+  },
+
+  async getPricing() {
+    try {
+      const response = await axios.get(`${API_URL}/pricing`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching pricing:", error);
       throw error;
     }
   },
 
-  // --- Фермы ---
   async getFarms() {
     try {
       const response = await axios.get(`${API_URL}/farms`);
@@ -24,6 +38,7 @@ export default {
       throw error;
     }
   },
+
   async getFarm(id) {
     try {
       const response = await axios.get(`\({API_URL}/farms/\){id}`);
@@ -34,13 +49,35 @@ export default {
     }
   },
 
-  // --- Цены (для покупателя) ---
-  async getPricing() {
+  async createFarm(farmData) {
     try {
-      const response = await axios.get(`${API_URL}/pricing`);
-      return response.data;
+      const response = await axios.post(`${API_URL}/farms`, farmData);
+      return response.data; 
     } catch (error) {
-      console.error("Error fetching pricing:", error);
+      console.error("Error creating farm:", error);
+      throw error;
+    }
+  },
+
+  async updateFarm(farmId, farmData) {
+    try {
+      const url = `${API_URL}/farms/${farmId}`;
+      const response = await axios.put(url, farmData);
+
+      //const response = await axios.put(`\({API_URL}/farms/\){farmId}`, farmData);
+      return response.data; 
+    } catch (error) {
+      console.error(`Error updating farm with id ${farmId}:`, error);
+      throw error;
+    }
+  },
+
+
+  async deleteFarm(farmId) {
+    try {
+      await axios.delete(`\({API_URL}/farms/\)${farmId}`);
+    } catch (error) {
+      console.error(`Error deleting farm with id ${farmId}:`, error);
       throw error;
     }
   }

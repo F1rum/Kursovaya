@@ -1,6 +1,7 @@
 <template>
   <div class="login-container">
     <h2>Вход в систему</h2>
+    <p>Добро пожаловать, авторизуйтесь для продолжения работы</p>
     <div class="login-form">
       <input type="text" v-model="username" placeholder="Имя пользователя (manager / customer)">
       <input type="password" v-model="password" placeholder="Пароль (password)">
@@ -24,13 +25,13 @@ export default {
   },
   methods: {
     async login() {
-      this.error = ''; // Сброс ошибки
+      this.error = ''; 
       try {
         const users = await api.getUsers();
         const user = users.find(u => u.username === this.username && u.password === this.password);
 
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user)); // Сохраняем пользователя для аутентификации
+          localStorage.setItem('user', JSON.stringify(user));
           if (user.role === 'manager') {
             this.$router.push('/manager');
           } else {
