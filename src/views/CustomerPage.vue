@@ -1,24 +1,41 @@
 <template>
-  <div class="customer-page-container">
-    <div class="header">
-      <h2>Калькулятор стоимости птиц</h2>
-      <button @click="handleLogout" class="logout-btn">Выход</button>
+  <body>
+    <div style="display: flex; justify-content: center;">
+      <H2>Добро пожаловать на страницу заказа</H2>
+      <div>
+        <button @click="handleLogout" class="logout-btn">Выход</button>
+      </div>
     </div>
-     <div class="calculator">
-      <label for="quantity">Введите нужное вам количество птиц:</label>
-      <input type="number" id="quantity" v-model.number="birdCount" min="1">
-      <button @click="calculatePrice" :disabled="!birdCount || birdCount < 1">Рассчитать</button>
+    <div class="customer-page-container">
+      <H2>Птицы в наличии</H2>
+      <h3>Куры</h3>
+        <div class="calculator">
+        <label for="quantity">Введите нужное вам количество птиц:</label>
+        <input type="number" id="quantity" v-model.number="ChickenCount" min="0">
+      </div>
+      <h3>Утки</h3>
+        <div class="calculator">
+        <label for="quantity">Введите нужное вам количество птиц:</label>
+        <input type="number" id="quantity" v-model.number="DuckCount" min="0">
+      </div>
+      <h3>Гуси</h3>
+        <div class="calculator">
+        <label for="quantity">Введите нужное вам количество птиц:</label>
+        <input type="number" id="quantity" v-model.number="GooseCount" min="0">
+      </div>
+      <button @click="calculatePrice">Рассчитать</button>
+
+      <div v-if="totalPrice !== null" class="result">
+        <p>Общая стоимость: {{ totalPrice.toLocaleString('ru-RU') }} руб.</p>
+      </div>
+      <div v-if="!pricingLoaded && !error">
+        <p>Загрузка цен...</p>
+      </div>
+      <div v-if="error" class="error-message">
+        <p>{{ error }}</p>
+      </div>
     </div>
-    <div v-if="totalPrice !== null" class="result">
-      <p>Общая стоимость: {{ totalPrice.toLocaleString('ru-RU') }} руб.</p>
-    </div>
-    <div v-if="!pricingLoaded && !error">
-      <p>Загрузка цен...</p>
-    </div>
-    <div v-if="error" class="error-message">
-      <p>{{ error }}</p>
-    </div>
-  </div>
+  </body>
 </template>
 
 <script>
@@ -29,7 +46,9 @@ export default {
   name: 'CustomerPage',
   data() {
     return {
-      birdCount: 1,
+      ChickenCount: 0,
+      DuckCount: 0,
+      GooseCount: 0,
       totalPrice: null,
       pricing: {},
       pricingLoaded: false,
@@ -51,18 +70,15 @@ export default {
       }
     },
     calculatePrice() {
-      if (!this.pricingLoaded || !this.birdCount || this.birdCount < 1) {
+      if (!this.pricingLoaded || !this.ChickenCount && this.ChickenCount < 0 && !this.DuckCount && this.DuckCount < 0 && !this.GooseCount && this.GooseCount < 0) {
         this.error = 'Пожалуйста, введите корректное количество птиц.';
         this.totalPrice = null;
         return;
       }
-      const pricePerBird = this.pricing.chicken;
-      if (pricePerBird === undefined) {
-        this.error = 'Цена на курицу не установлена.';
-        this.totalPrice = null;
-        return;
-      }
-      this.totalPrice = this.birdCount * pricePerBird;
+      const pricePerChicken = this.pricing.chicken;
+      const pricePerDuck = this.pricing.duck;
+      const pricePerGoose = this.pricing.goose;
+      this.totalPrice = this.ChickenCount * pricePerChicken + this.DuckCount * pricePerDuck + this.GooseCount * pricePerGoose;
     },
     handleLogout() {
       logout();

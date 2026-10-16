@@ -3,13 +3,13 @@
     {
       "id": "1",
       "username": "manager",
-      "password": "password",
+      "password": "1",
       "role": "manager"
     },
     {
       "id": "2",
       "username": "customer",
-      "password": "password",
+      "password": "1",
       "role": "customer"
     }
   ],
